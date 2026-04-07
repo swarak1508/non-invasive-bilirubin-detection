@@ -26,7 +26,10 @@ To develop a low-cost, non-invasive approach for bilirubin estimation using digi
 
 - Higher bilirubin levels often give a yellowish tint to the skin  
 - Yellow color = High Red + Green, Low Blue  
-- The model uses this relationship to estimate bilirubin  
+- The model uses this relationship to estimate bilirubin
+
+---
+
 ## 📊 Bilirubin Estimation Formula
 
 
@@ -60,12 +63,18 @@ Install dependencies using:
 
 ```bash
 pip install -r requirements.txt
-▶️ How to Run
+
+---
+
+## ▶️ How to Run
 Place your image inside sample_images/
 Update the image path in main.py if needed
 Run:
 python main.py
-📷 Sample Output
+
+---
+
+## 📷 Sample Output
 Displays input image
 Prints average RGB values
 Outputs estimated bilirubin level
@@ -73,29 +82,32 @@ Classifies as Normal/Abnormal
 
 (Add your screenshot in the outputs folder and link here if needed)
 
-📚 Reference Ranges Used
+
+## 📚 Reference Ranges Used
 Standard	Normal Range (mg/dL)
 WHO	0.3 – 1.2
 CMRR	0.2 – 1.0
-🚀 Future Improvements
+
+
+## 🚀 Future Improvements
 Face detection for accurate ROI extraction
 Machine Learning model for better prediction
 Mobile app integration
 Real-time camera-based analysis
 Clinical dataset validation
-🧑‍💻 Author
+
+
+## 🧑‍💻 Author
 
 Swara K
 Biomedical Electronics Engineering Student
 
-⭐ Acknowledgment
+## ⭐ Acknowledgment
 
 This project was developed as part of a biomedical engineering learning initiative focused on non-invasive diagnostic techniques.
 
-⚠️ Disclaimer
+## ⚠️ Disclaimer
 
 This project is intended strictly for educational and research purposes.
 It should not be used for medical diagnosis or treatment decisions.
 ---
-
-## 📊 Bilirubin Estimation Formula
