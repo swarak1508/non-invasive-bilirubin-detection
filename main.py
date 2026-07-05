@@ -1,40 +1,62 @@
-from PIL import Image
+import cv2
 import numpy as np
-import matplotlib.pyplot as plt
-from google.colab import files
+import sys
 
-# Step 1: Upload Image
-uploaded = files.upload()
+# =========================
+# Load image
+# =========================
+if len(sys.argv) < 2:
+    raise Exception("Usage: python main.py <image_path>")
 
-# Step 2: Load Image
-image_path = next(iter(uploaded))
-img = Image.open(image_path).convert('RGB')
-plt.imshow(img)
-plt.title("Uploaded Image")
-plt.axis('off')
-plt.show()
+image_path = sys.argv[1]
 
-# Step 3: Calculate Average RGB
-rgb_array = np.array(img)
-avg_rgb = rgb_array.mean(axis=(0, 1))
-avg_r, avg_g, avg_b = avg_rgb
-print(f"\nAverage RGB values:\nR: {avg_r:.2f}, G: {avg_g:.2f}, B: {avg_b:.2f}")
+img = cv2.imread(image_path)
+if img is None:
+    raise Exception("Image not found or invalid path")
 
-# Step 4: Simple Estimation of Bilirubin from RGB
-# Example mapping: higher bilirubin often correlates with yellow tint (high R+G, low B)
-# This is a naive heuristic and **NOT** clinically accurate
-bilirubin_level = ((avg_r + avg_g) / 2 - avg_b) / 255 * 20  # scaled to max ~20 mg/dL
-bilirubin_level = max(0, min(bilirubin_level, 20))  # clamp to realistic range
+img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
 
-print(f"\nEstimated Bilirubin Level: {bilirubin_level:.2f} mg/dL")
+# =========================
+# Face Detection
+# =========================
+face_cascade = cv2.CascadeClassifier(
+    cv2.data.haarcascades + "haarcascade_frontalface_default.xml"
+)
 
-# Step 5: WHO and CMRR reference comparison
-who_normal = (0.3, 1.2)
-cmrr_normal = (0.2, 1.0)
+gray = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
+faces = face_cascade.detectMultiScale(gray, 1.1, 5)
 
-def check_range(level, normal_range):
-    return normal_range[0] <= level <= normal_range[1]
+if len(faces) == 0:
+    raise Exception("No face detected")
 
-print("\nBilirubin Level Classification:")
-print(f"WHO Normal Range: {who_normal[0]}–{who_normal[1]} mg/dL => {'Normal' if check_range(bilirubin_level, who_normal) else 'Abnormal'}")
-print(f"CMRR Normal Range: {cmrr_normal[0]}–{cmrr_normal[1]} mg/dL => {'Normal' if check_range(bilirubin_level, cmrr_normal) else 'Abnormal'}")
+x, y, w, h = faces[0]
+face = img[y:y+h, x:x+w]
+
+# =========================
+# Feature Extraction (YCbCr)
+# =========================
+ycbcr = cv2.cvtColor(face, cv2.COLOR_RGB2YCrCb)
+y, cr, cb = cv2.split(ycbcr)
+
+features = np.array([[np.mean(y), np.mean(cr), np.mean(cb)]])
+
+# =========================
+# Prediction (ML or fallback)
+# =========================
+try:
+    import joblib
+    model = joblib.load("model/bilirubin_model.pkl")
+    bilirubin = model.predict(features)[0]
+except:
+    bilirubin = (np.mean(cr) - np.mean(cb)) / 10
+
+# Safety clamp
+bilirubin = max(0, min(bilirubin, 25))
+
+# =========================
+# Output
+# =========================
+print("\n==============================")
+print("NON-INVASIVE BILIRUBIN SYSTEM")
+print("==============================")
+print(f"Estimated Bilirubin: {bilirubin:.2f} mg/dL")
